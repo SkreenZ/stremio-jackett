@@ -79,19 +79,21 @@ def parse_to_debrid_stream(torrent_item: TorrentItem, config, host, torrenting, 
         title += f"{get_emoji(language)}/"
     title = title[:-1]
 
-    queryb64 = encodeb64(json.dumps(torrent_item.to_debrid_stream_query(media))).replace('=', '%3D')
 
-    results.put({
-        "name": name,
-        "description": title,
-        "url": f"{host}/playback/{configb64}/{queryb64}" if config['debrid'] else torrent_item.magnet,
-        "behaviorHints":{
-            "bingeGroup": f"stremio-jackett-{torrent_item.info_hash}",
-            "filename": torrent_item.file_name if torrent_item.file_name is not None else torrent_item.raw_title # TODO: Use parsed title?
-        }
-    })
+    if config['debrid']:
+        queryb64 = encodeb64(json.dumps(torrent_item.to_debrid_stream_query(media))).replace('=', '%3D')
 
-    if torrenting and torrent_item.privacy == "public":
+        results.put({
+            "name": name,
+            "description": title,
+            "url": f"{host}/playback/{configb64}/{queryb64}",
+            "behaviorHints":{
+                "bingeGroup": f"stremio-jackett-{torrent_item.info_hash}",
+                "filename": torrent_item.file_name if torrent_item.file_name is not None else torrent_item.raw_title # TODO: Use parsed title?
+            }
+        })
+
+    if torrenting:
         name = f"{DIRECT_TORRENT}\n"
         if parsed_data.quality and parsed_data.quality != "Unknown" and \
                 parsed_data.quality != "":
@@ -101,6 +103,7 @@ def parse_to_debrid_stream(torrent_item: TorrentItem, config, host, torrenting, 
             "description": title,
             "infoHash": torrent_item.info_hash,
             "fileIdx": int(torrent_item.file_index) if torrent_item.file_index else None,
+            "url": torrent_item.magnet,
             "behaviorHints":{
                 "bingeGroup": f"stremio-jackett-{torrent_item.info_hash}",
                 "filename": torrent_item.file_name if torrent_item.file_name is not None else torrent_item.raw_title # TODO: Use parsed title?
