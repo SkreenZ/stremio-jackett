@@ -103,7 +103,6 @@ def parse_to_debrid_stream(torrent_item: TorrentItem, config, host, torrenting, 
             "description": title,
             "infoHash": torrent_item.info_hash,
             "fileIdx": int(torrent_item.file_index) if torrent_item.file_index else None,
-            "url": torrent_item.magnet,
             "behaviorHints":{
                 "bingeGroup": f"stremio-jackett-{torrent_item.info_hash}",
                 "filename": torrent_item.file_name if torrent_item.file_name is not None else torrent_item.raw_title # TODO: Use parsed title?
