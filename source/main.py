@@ -6,12 +6,14 @@ import shutil
 import time
 import zipfile
 import json
+import urllib.parse
+import aiohttp
 
 import requests
 import starlette.status as status
 from aiocron import crontab
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -220,9 +222,24 @@ async def get_playback(config: str, query: str, request: Request):
         logger.info("Decoded query")
 
         if not config['debrid']:
-            link = json.loads(query)['torrent_download']
-            logger.info("Debrid is disabled, redirecting to torrent file: " + link)
-            return RedirectResponse(url=link, status_code=status.HTTP_301_MOVED_PERMANENTLY)
+            link = urllib.parse.unquote(json.loads(query)['torrent_download'])
+            logger.info("Getting torrent link: " + link)
+
+            async with aiohttp.ClientSession() as session:
+                async with session.get(link) as resp:
+                    if resp.status != 200:
+                        logger.error("Failed to download torrent with code " + resp.status)
+                        raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
+                    
+                    # Set appropriate headers
+                    headers = {
+                        "Content-Type": resp.headers.get("Content-Type", "application/x-bittorrent"),
+                        "Content-Disposition": f'attachment; filename="{link.split("/")[-1]}"'
+                    }
+                    
+                    # Stream the content
+                    content = await resp.read()
+                    return Response(content=content, headers=headers)
 
         ip = request.client.host
         debrid_service = get_debrid_service(config)
