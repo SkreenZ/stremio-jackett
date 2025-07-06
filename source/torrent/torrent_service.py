@@ -52,6 +52,7 @@ class TorrentService:
         return torrent_items_result
 
     def __process_web_url(self, result: TorrentItem):
+        self.logger.info("PROCESSING URL " + result.link)
         try:
             # TODO: is the default timeout enough?
             response = self.__session.get(result.link, allow_redirects=False, timeout=os.environ.get("JACKETT_RESOLVER_TIMEOUT", 2))
