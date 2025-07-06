@@ -5,6 +5,7 @@ import re
 import shutil
 import time
 import zipfile
+import json
 
 import requests
 import starlette.status as status
@@ -217,6 +218,12 @@ async def get_playback(config: str, query: str, request: Request):
         query = decodeb64(query)
         logger.info(query)
         logger.info("Decoded query")
+
+        if not config['debrid']:
+            link = json.loads(query)['torrent_download']
+            logger.info("Debrid is disabled, redirecting to torrent file: " + link)
+            return RedirectResponse(url=link, status_code=status.HTTP_301_MOVED_PERMANENTLY)
+
         ip = request.client.host
         debrid_service = get_debrid_service(config)
         link = debrid_service.get_stream_link(query, ip)
@@ -238,6 +245,12 @@ async def get_playback(config: str, query: str, request: Request):
         query = decodeb64(query)
         logger.info(query)
         logger.info("Decoded query")
+
+        if not config['debrid']:
+            link = json.loads(query)['torrent_download']
+            logger.info("Debrid is disabled, redirecting to torrent file: " + link)
+            return RedirectResponse(url=link, status_code=status.HTTP_301_MOVED_PERMANENTLY)
+        
         ip = request.client.host
         debrid_service = get_debrid_service(config)
         link = debrid_service.get_stream_link(query, ip)

@@ -10,8 +10,8 @@ services:
       - PUID=$(id -u)
       - PGID=$(id -g)
       - TZ=America/Los_Angeles
-#    networks:
-#      - stremio_jacket_network
+    networks:
+      - stremio_jacket_network
     ports:
       - "${PORT:-8191}:8191"
     restart: unless-stopped
@@ -26,8 +26,8 @@ services:
       - RUN_OPTS= #optional
     depends_on:
       - flaresolverr
-#    networks:
-#      - stremio_jacket_network
+    networks:
+      - stremio_jacket_network
     volumes:
       - ./data:/config
       - /path/to/blackhole:/downloads
@@ -35,7 +35,8 @@ services:
       - 9117:9117
     restart: unless-stopped
   jackett-stremio:
-    image: belmeg/stremio-addon-jackett
+    build:
+      context: ../source
     container_name: jackett-stremio
     environment:
       - PUID=$(id -u)
@@ -44,13 +45,13 @@ services:
       - ADDON_NAME=stremio_jacket
     depends_on:
       - jackett
-#    networks:
-#      - stremio_jacket_network
+    networks:
+      - stremio_jacket_network
     ports:
       - 3000:3000
     restart: unless-stopped
 
-#networks:
-#    stremio_jacket_network:
+networks:
+    stremio_jacket_network:
 #        external: true
 #        name: stremio_jacket_network
