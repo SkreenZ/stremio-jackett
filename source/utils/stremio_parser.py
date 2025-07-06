@@ -98,6 +98,8 @@ def parse_to_debrid_stream(torrent_item: TorrentItem, config, host, torrenting, 
         if parsed_data.quality and parsed_data.quality != "Unknown" and \
                 parsed_data.quality != "":
             name += f"({parsed_data.quality})"
+        logger.info("TORRENT TRACKERS: ")
+        logger.info(["tracker:" + tracker for tracker in torrent_item.trackers])
         results.put({
             "name": name,
             "description": title,
