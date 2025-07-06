@@ -48,11 +48,13 @@ def filter_by_direct_torrnet(item):
         return 0
 
 
-def parse_to_debrid_stream(torrent_item: TorrentItem, configb64, host, torrenting, results: queue.Queue, media: Media):
+def parse_to_debrid_stream(torrent_item: TorrentItem, config, host, torrenting, results: queue.Queue, media: Media):
     if torrent_item.availability == True:
         name = f"{INSTANTLY_AVAILABLE}\n"
     else:
         name = f"{DOWNLOAD_REQUIRED}\n"
+
+    configb64 = encodeb64(json.dumps(config).replace('=', '%3D'))
 
     parsed_data = torrent_item.parsed_data.data
 
@@ -82,7 +84,7 @@ def parse_to_debrid_stream(torrent_item: TorrentItem, configb64, host, torrentin
     results.put({
         "name": name,
         "description": title,
-        "url": f"{host}/playback/{configb64}/{queryb64}",
+        "url": f"{host}/playback/{configb64}/{queryb64}" if config['debrid'] else torrent_item.magnet,
         "behaviorHints":{
             "bingeGroup": f"stremio-jackett-{torrent_item.info_hash}",
             "filename": torrent_item.file_name if torrent_item.file_name is not None else torrent_item.raw_title # TODO: Use parsed title?
@@ -112,10 +114,9 @@ def parse_to_stremio_streams(torrent_items: List[TorrentItem], config, media):
     threads = []
     thread_results_queue = queue.Queue()
 
-    configb64 = encodeb64(json.dumps(config).replace('=', '%3D'))
     for torrent_item in torrent_items[:int(config['maxResults'])]:
         thread = threading.Thread(target=parse_to_debrid_stream,
-                                  args=(torrent_item, configb64, config['addonHost'], config['torrenting'],
+                                  args=(torrent_item, config, config['addonHost'], config['torrenting'],
                                         thread_results_queue, media),
                                   daemon=True)
         thread.start()
