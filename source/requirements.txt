@@ -8,4 +8,3 @@ aiocron
 python-dotenv
 rank-torrent-name >= 1.0.0
 aiohttp
-urllib
